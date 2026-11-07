@@ -1,0 +1,12 @@
+.DS_Store
+Pods/
+build/
+DerivedData/
+**/xcuserdata/
+*.xcuserstate
+*.log
+*.crt
+*.p12
+*.p8
+*.mobileprovision
+.env

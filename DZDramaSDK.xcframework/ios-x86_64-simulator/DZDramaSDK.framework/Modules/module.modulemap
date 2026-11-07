@@ -1,0 +1,11 @@
+framework module DZDramaSDK {
+  umbrella header "DZDramaSDK.h"
+  export *
+
+  module * { export * }
+}
+
+module DZDramaSDK.Swift {
+  header "DZDramaSDK-Swift.h"
+  requires objc
+}

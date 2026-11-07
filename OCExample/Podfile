@@ -1,0 +1,20 @@
+source 'https://mirrors.tuna.tsinghua.edu.cn/git/CocoaPods/Specs.git'
+source 'https://github.com/aliyun-sls/Specs.git'
+platform :ios, '15.0'
+use_modular_headers!
+install! 'cocoapods', :deterministic_uuids => true
+sdk_path = File.expand_path('..', __dir__)
+sdk_path = File.expand_path('../../../DZDramaSDK_iOS', __dir__) unless File.exist?(File.join(sdk_path, 'DZDramaSDK.podspec'))
+require File.join(sdk_path, 'CocoaPodsSupport')
+target 'DZDramaOCExample' do
+  pod 'DZDramaSDK', :path => sdk_path
+  target 'DZDramaOCExampleTests' do
+    inherit! :search_paths
+  end
+end
+post_install do |installer|
+  DZDramaSDKPodSupport.post_install(installer)
+end
+post_integrate do |installer|
+  DZDramaSDKPodSupport.post_integrate(installer)
+end

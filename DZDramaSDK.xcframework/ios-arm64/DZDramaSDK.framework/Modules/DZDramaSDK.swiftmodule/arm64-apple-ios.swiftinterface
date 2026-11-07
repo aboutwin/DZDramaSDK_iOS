@@ -1,0 +1,77 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.0.3 effective-5.10 (swiftlang-6.0.3.1.10 clang-1600.0.30.1)
+// swift-module-flags: -target arm64-apple-ios15.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-bare-slash-regex -module-name DZDramaSDK
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface
+import AVFoundation
+import AVKit
+import Combine
+import CryptoKit
+@_exported import DZDramaSDK
+import Foundation
+import Network
+import SQLite3
+import Security
+import Swift
+import UIKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+@objc public enum DZDramaPage : Swift.Int {
+  case recommendation
+  case theater
+  case search
+  case favorites
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc @_inheritsConvenienceInitializers @objcMembers final public class DZDramaConfiguration : ObjectiveC.NSObject {
+  @objc final public var appKey: Swift.String
+  @objc final public var licenseKey: Swift.String?
+  @objc final public var account: Swift.String?
+  @objc final public var oaid: Swift.String?
+  @objc final public var channel: Swift.String
+  @objc final public var plaintextLaunchDebugging: Swift.Bool
+  @objc override dynamic public init()
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @objc(DZDramaSDKManager) @objcMembers final public class DZDramaClient : ObjectiveC.NSObject {
+  @objc public static let shared: DZDramaSDK.DZDramaClient
+  @objc public static let sdkVersion: Swift.String
+  @objc public static var resourceBundle: Foundation.Bundle {
+    @objc get
+  }
+  @objc final public var userID: Swift.String? {
+    @objc get
+  }
+  @objc final public var isRegistered: Swift.Bool {
+    @objc get
+  }
+  @objc final public var logHandler: ((Swift.String, [Swift.String : Any]) -> Swift.Void)? {
+    @objc get
+    @objc set
+  }
+  @objc final public var eventHandler: ((Swift.String, [Swift.String : Any]) -> Swift.Void)? {
+    @objc get
+    @objc set
+  }
+  @objc(initializeWithConfiguration:completion:) final public func initialize(with configuration: DZDramaSDK.DZDramaConfiguration, completion: ((Foundation.NSError?) -> Swift.Void)?)
+  @objc(loginWithAccount:oaid:completion:) final public func login(account: Swift.String?, oaid: Swift.String?, completion: ((Foundation.NSError?) -> Swift.Void)?)
+  @objc(viewControllerForPage:) final public func viewController(for page: DZDramaSDK.DZDramaPage) -> UIKit.UIViewController
+  @objc(navigationControllerWithRootViewController:) final public func navigationController(rootViewController: UIKit.UIViewController) -> UIKit.UINavigationController
+  @objc(detailViewControllerWithBookID:chapterIndex:playStartPosition:) final public func detailViewController(bookID: Swift.String, chapterIndex: Swift.Int, playStartPosition: Swift.Int64) -> UIKit.UIViewController
+  @objc final public func initialize(appKey: Swift.String, oaid: Swift.String? = nil, account: Swift.String? = nil)
+  @objc final public func login(appKey: Swift.String, oaid: Swift.String? = nil, account: Swift.String? = nil)
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc(DZExposureEventBridge) final public class DZExposureEventBridge : ObjectiveC.NSObject {
+  @objc(DZ_logInfo:andOtherInfo:) public static func DZ_logInfo(_ message: Swift.String, andOtherInfo info: [Swift.String : Any])
+  @objc(DZ_trackPageWithName:pageTitle:positionName:pageAddress:extMap:) public static func DZ_trackPage(withName pageName: Swift.String?, pageTitle: Swift.String?, positionName: Swift.String?, pageAddress: Swift.String?, extMap: [Swift.String : Any]?)
+  @objc override dynamic public init()
+  @objc deinit
+}
+extension DZDramaSDK.DZDramaPage : Swift.Equatable {}
+extension DZDramaSDK.DZDramaPage : Swift.Hashable {}
+extension DZDramaSDK.DZDramaPage : Swift.RawRepresentable {}
