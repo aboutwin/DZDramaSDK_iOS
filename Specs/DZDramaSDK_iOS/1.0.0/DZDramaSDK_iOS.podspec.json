@@ -1,0 +1,87 @@
+{
+  "name": "DZDramaSDK_iOS",
+  "module_name": "DZDramaSDK",
+  "version": "1.0.0",
+  "summary": "点众短剧 iOS 二进制 SDK，支持 Objective-C 和 Swift 宿主。",
+  "description": "提供推荐、剧场、搜索、收藏、播放详情页面及账号初始化能力。业务实现以静态 XCFramework 分发。",
+  "homepage": "https://github.com/aboutwin/DZDramaSDK_iOS",
+  "license": {
+    "type": "Commercial",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "DZ": "iOS SDK Team"
+  },
+  "source": {
+    "git": "https://github.com/aboutwin/DZDramaSDK_iOS.git",
+    "tag": "1.0.0"
+  },
+  "platforms": {
+    "ios": "15.0"
+  },
+  "swift_versions": [
+    "5.0"
+  ],
+  "static_framework": true,
+  "vendored_frameworks": "DZDramaSDK.xcframework",
+  "resources": "DZDramaSDKResources.bundle",
+  "preserve_paths": "CocoaPodsSupport.rb",
+  "frameworks": [
+    "UIKit",
+    "AVFoundation",
+    "AVKit",
+    "Security",
+    "Network",
+    "SystemConfiguration"
+  ],
+  "libraries": [
+    "sqlite3",
+    "compression",
+    "c++",
+    "z"
+  ],
+  "user_target_xcconfig": {
+    "OTHER_LDFLAGS": "$(inherited) -ObjC",
+    "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES": "YES",
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]": "arm64"
+  },
+  "pod_target_xcconfig": {
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]": "arm64"
+  },
+  "dependencies": {
+    "ObjectMapper": [
+      "4.2.0"
+    ],
+    "Kingfisher": [
+      "7.11.0"
+    ],
+    "SnapKit": [
+      "5.7.1"
+    ],
+    "AliPlayerSDK_iOS": [
+      "7.16.0-56407419"
+    ],
+    "Moya": [
+      "15.0.0"
+    ],
+    "Alamofire": [
+      "5.9.1"
+    ],
+    "MJRefresh": [
+      "3.7.9"
+    ],
+    "CryptoSwift": [
+      "1.8.2"
+    ],
+    "DeviceKit": [
+      "5.2.2"
+    ],
+    "MMKV": [
+      "2.4.2"
+    ],
+    "MMKVCore": [
+      "2.4.3"
+    ]
+  },
+  "swift_version": "5.0"
+}

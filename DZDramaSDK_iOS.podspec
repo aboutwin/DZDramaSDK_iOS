@@ -1,12 +1,13 @@
 Pod::Spec.new do |s|
-  s.name = 'DZDramaSDK'
+  s.name = 'DZDramaSDK_iOS'
+  s.module_name = 'DZDramaSDK'
   s.version = '1.0.0'
   s.summary = '点众短剧 iOS 二进制 SDK，支持 Objective-C 和 Swift 宿主。'
   s.description = '提供推荐、剧场、搜索、收藏、播放详情页面及账号初始化能力。业务实现以静态 XCFramework 分发。'
   s.homepage = 'https://github.com/aboutwin/DZDramaSDK_iOS'
   s.license = { :type => 'Commercial', :file => 'LICENSE' }
   s.author = { 'DZ' => 'iOS SDK Team' }
-  s.source = { :git => 'https://github.com/aboutwin/DZDramaSDK_iOS.git', :branch => 'main' }
+  s.source = { :git => 'https://github.com/aboutwin/DZDramaSDK_iOS.git', :tag => s.version.to_s }
   s.ios.deployment_target = '15.0'
   s.swift_versions = ['5.0']
   s.static_framework = true

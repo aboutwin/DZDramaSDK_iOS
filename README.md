@@ -1,32 +1,25 @@
-# DZDramaSDK 1.0.0
+# DZDramaSDK_iOS 1.0.0
 
 iOS 短剧二进制 SDK，最低 iOS 15.0。以静态 XCFramework 分发，包含真机 arm64 和模拟器 x86_64。业务源码、内部 Swift 二进制模块和调试源码索引不在交付包中；公开 `.h` / `.swiftinterface` 是接入所需的接口声明。
 
 每个架构仅交付两个头文件：模块入口 `DZDramaSDK.h` 和供 OC 调用 Swift 接口的 `DZDramaSDK-Swift.h`。曝光、压缩和运行时分类等内部工具不对宿主公开。
 
-## 本地 CocoaPods 接入
+## 按版本号通过 CocoaPods 接入
 
-将 SDK 目录放在宿主工程旁。
-
-可先从 GitHub 获取本版本：
-
-```sh
-git clone --branch main https://github.com/aboutwin/DZDramaSDK_iOS.git DZDramaSDK_iOS
-```
-
-宿主 Podfile 配置：
+在宿主 Podfile 添加公开 Specs 源及版本依赖。CocoaPods 会从 GitHub 的 `1.0.0` 标签下载二进制 SDK，无需手动下载或放置 SDK 目录：
 
 ```ruby
+source 'https://github.com/aboutwin/DZDramaSDK_iOS.git'
 source 'https://mirrors.tuna.tsinghua.edu.cn/git/CocoaPods/Specs.git'
 source 'https://github.com/aliyun-sls/Specs.git'
 platform :ios, '15.0'
 use_modular_headers!
-require_relative '../DZDramaSDK_iOS/CocoaPodsSupport'
 
 target 'YourApp' do
-  pod 'DZDramaSDK', :path => '../DZDramaSDK_iOS'
+  pod 'DZDramaSDK_iOS', '1.0.0'
 end
 post_install do |installer|
+  require File.join(installer.sandbox.pod_dir('DZDramaSDK_iOS'), 'CocoaPodsSupport.rb')
   DZDramaSDKPodSupport.post_install(installer)
 end
 post_integrate do |installer|
@@ -34,7 +27,9 @@ post_integrate do |installer|
 end
 ```
 
-执行 `pod install`，打开宿主 `.xcworkspace`。已有 post_install / post_integrate 时合并调用，不要重复定义 hook。辅助脚本保持 Xcode 脚本沙箱开启，处理播放器框架、资源 bundle 和 CocoaPods 1.15 的复制输出路径。
+执行 `pod install --repo-update`，打开宿主 `.xcworkspace`。已有 post_install / post_integrate 时合并调用，不要重复定义 hook。辅助脚本从安装后的 Pod 目录加载，保持 Xcode 脚本沙箱开启，处理播放器框架、资源 bundle 和 CocoaPods 1.15 的复制输出路径。
+
+公开 Specs 索引由上述 GitHub 仓库维护，必须保留第一条 source；该 Pod 不依赖本地 `:path`。Pod 名称为 `DZDramaSDK_iOS`，Swift 模块和 OC framework 名称仍为 `DZDramaSDK`，原有 `import DZDramaSDK` 和 `#import <DZDramaSDK/DZDramaSDK-Swift.h>` 无需修改。
 
 SDK 内部使用 Swift，OC 宿主无需添加 Swift 源文件；所需 Swift 运行库设置由 Pod 配置提供。第三方依赖由 CocoaPods 单独安装，SDK 二进制不重复打入它们，版本以 podspec 为准。
 
@@ -145,6 +140,6 @@ Swift 使用 `DZDramaClient.shared.bottomAdHandler = { vc, bottomView, bookID in
 
 阿里播放器 `7.16.0-56407419` 只提供真机 arm64 和模拟器 x86_64。当前整套 SDK 因而不支持原生 arm64 模拟器；接入脚本仅在模拟器构建中排除 arm64，真机继续使用 arm64。Apple Silicon 电脑需要可运行 x86_64 的模拟器及 Rosetta。要支持原生 arm64 模拟器，需要先更换支持该架构的播放器依赖，再重新构建 SDK。
 
-本包的静态 SDK 不需要 Embed & Sign；播放器动态框架由 CocoaPods 嵌入。当前交付内容位于 GitHub main 分支，SDK 版本保持 1.0.0；下载或克隆 main 后按上面的本地路径配置接入。podspec 的 source 同样指向 main 分支。
+本包的静态 SDK 不需要 Embed & Sign；播放器动态框架由 CocoaPods 嵌入。Specs 索引从 GitHub main 分支读取，版本 1.0.0 的二进制始终从同名标签下载。
 
 隐私声明放在 SDK 资源 bundle 内，第三方许可证位于 ThirdPartyNotices。SDK 使用设备/用户标识及使用事件进行功能服务和分析，宿主应结合实际业务配置其 App 隐私说明。

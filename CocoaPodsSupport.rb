@@ -44,8 +44,8 @@ module DZDramaSDKPodSupport
       expanded.concat(["#{bundle}/Info.plist", "#{bundle}/PrivacyInfo.xcprivacy"])
     end
     bundles = [File.join(installer.sandbox.root.to_s, 'MJRefresh/MJRefresh/MJRefresh.bundle')]
-    sdk = installer.pod_targets.find { |target| target.pod_name == 'DZDramaSDK' }
-    bundles << File.join(installer.sandbox.pod_dir('DZDramaSDK').to_s, 'DZDramaSDKResources.bundle') if sdk
+    sdk = installer.pod_targets.find { |target| target.pod_name == 'DZDramaSDK_iOS' }
+    bundles << File.join(installer.sandbox.pod_dir('DZDramaSDK_iOS').to_s, 'DZDramaSDKResources.bundle') if sdk
     bundles.select { |bundle| File.directory?(bundle) }.each do |bundle|
       Dir.glob(File.join(bundle, '**', '*')).each do |file|
         expanded << "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/#{File.basename(bundle)}/#{file.delete_prefix(bundle + '/')}"
