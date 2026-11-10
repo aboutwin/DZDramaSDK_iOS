@@ -45,11 +45,6 @@ SDK 内部使用 Swift，OC 宿主无需添加 Swift 源文件；所需 Swift �
 
 宿主 Bundle ID 和播放器授权应匹配。交付给新合作方时替换其 appKey 和播放器授权信息。Demo 由 SDK 提供方单独提供。
 
-`DZOperaLicenseKey` 内置在 SDK 资源包的 `DZOperaConfig.plist` 中，由 SDK 维护方配置。签名使用密钥原文的 UTF-8 字节，不做十六进制解码或固定长度限制。宿主无需配置签名密钥，SDK 不读取宿主 Info.plist 中的同名值，也不提供传入或覆盖密钥的公开接口。更换密钥需要重新构建 SDK 交付包。
-
-SDK 业务接口始终使用 JSON 请求体及 JSON `datas` 请求头，通过 `X-Timestamp`、`X-Nonce`、`X-Sign` 完成 HMAC-SHA256 鉴权，不提供关闭鉴权的开关或联调头。
-
-`DZOperaConfig.plist` 内置在 `DZDramaSDKResources.bundle`，由 SDK 维护环境、域名、ProductCode 和 APIVersion。宿主不需要提供该文件，SDK 不读取宿主的同名配置，也不提供修改域名、产品编号或接口版本的公开入口。调整这些值时，由 SDK 维护方修改内部配置并重新构建交付包。
 
 ## Objective-C 使用
 
