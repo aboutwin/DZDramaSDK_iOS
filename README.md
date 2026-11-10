@@ -11,7 +11,6 @@ iOS 短剧二进制 SDK，最低 iOS 15.0。以静态 XCFramework 分发，包�
 ```ruby
 source 'https://github.com/aboutwin/DZDramaSDK_iOS.git'
 source 'https://mirrors.tuna.tsinghua.edu.cn/git/CocoaPods/Specs.git'
-source 'https://github.com/aliyun-sls/Specs.git'
 platform :ios, '15.0'
 use_modular_headers!
 
