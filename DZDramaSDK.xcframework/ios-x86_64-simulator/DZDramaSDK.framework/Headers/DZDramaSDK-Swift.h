@@ -280,7 +280,6 @@ typedef unsigned int swift_uint4  __attribute__((__ext_vector_type__(4)));
 #if __has_warning("-Watimport-in-framework-header")
 #pragma clang diagnostic ignored "-Watimport-in-framework-header"
 #endif
-@import Foundation;
 @import ObjectiveC;
 #endif
 
@@ -304,11 +303,11 @@ typedef unsigned int swift_uint4  __attribute__((__ext_vector_type__(4)));
 
 #if defined(__OBJC__)
 @class NSString;
-@class NSBundle;
+@class UIViewController;
+@class UIView;
 @class DZDramaConfiguration;
 @class NSError;
 enum DZDramaPage : NSInteger;
-@class UIViewController;
 @class UINavigationController;
 
 /// 所有页面创建、配置和账号切换方法请在主线程调用。
@@ -318,26 +317,26 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, strong) DZDramaSDKMa
 + (DZDramaSDKManager * _Nonnull)shared SWIFT_WARN_UNUSED_RESULT;
 SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, copy) NSString * _Nonnull sdkVersion;)
 + (NSString * _Nonnull)sdkVersion SWIFT_WARN_UNUSED_RESULT;
-/// SDK UI 资源所在 bundle，独立于宿主和播放器证书。
-SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, strong) NSBundle * _Nonnull resourceBundle;)
-+ (NSBundle * _Nonnull)resourceBundle SWIFT_WARN_UNUSED_RESULT;
-@property (nonatomic, readonly, copy) NSString * _Nullable userID;
-@property (nonatomic, readonly) BOOL isRegistered;
-/// 日志及埋点回调均使用 OC 可桥接的类型。
-@property (nonatomic, copy) void (^ _Nullable logHandler)(NSString * _Nonnull, NSDictionary<NSString *, id> * _Nonnull);
-@property (nonatomic, copy) void (^ _Nullable eventHandler)(NSString * _Nonnull, NSDictionary<NSString *, id> * _Nonnull);
+/// 点击锁定章节时调用；宿主在此加载和展示激励广告。回调在主线程执行。
+@property (nonatomic, copy) void (^ _Nullable unlockHandler)(UIViewController * _Nonnull, NSString * _Nonnull, NSString * _Nonnull);
+/// 详情页底通广告容器可用时在主线程回调：当前 VC、bottomView、bookID。
+/// 在进入 SDK 页面前设置；广告视图放入容器的 safeAreaLayoutGuide 内。
+@property (nonatomic, copy) void (^ _Nullable bottomAdHandler)(UIViewController * _Nonnull, UIView * _Nonnull, NSString * _Nonnull);
 - (nonnull instancetype)init SWIFT_UNAVAILABLE;
 + (nonnull instancetype)new SWIFT_UNAVAILABLE_MSG("-init is unavailable");
 - (void)initializeWithConfiguration:(DZDramaConfiguration * _Nonnull)configuration completion:(void (^ _Nullable)(NSError * _Nullable))completion;
-- (void)loginWithAccount:(NSString * _Nullable)account oaid:(NSString * _Nullable)oaid completion:(void (^ _Nullable)(NSError * _Nullable))completion;
+- (void)loginWithAccount:(NSString * _Nullable)account completion:(void (^ _Nullable)(NSError * _Nullable))completion;
 - (UIViewController * _Nonnull)viewControllerForPage:(enum DZDramaPage)page SWIFT_WARN_UNUSED_RESULT;
 - (UINavigationController * _Nonnull)navigationControllerWithRootViewController:(UIViewController * _Nonnull)rootViewController SWIFT_WARN_UNUSED_RESULT;
-/// chapterIndex 从 1 开始；playStartPosition 的单位为毫秒。
-- (UIViewController * _Nonnull)detailViewControllerWithBookID:(NSString * _Nonnull)bookID chapterIndex:(NSInteger)chapterIndex playStartPosition:(int64_t)playStartPosition SWIFT_WARN_UNUSED_RESULT;
+/// 激励广告奖励确认并关闭广告后，回传 unlockHandler 给出的原始控制器及 ID。
+/// completion 在主线程执行，nil 表示服务端确认解锁成功。
+- (void)unlockChapterInViewController:(UIViewController * _Nonnull)viewController bookID:(NSString * _Nonnull)bookID chapterID:(NSString * _Nonnull)chapterID adID:(NSString * _Nonnull)adID completion:(void (^ _Nullable)(NSError * _Nullable))completion;
+/// 广告加载失败、取消或未获得奖励时调用，允许用户再次点击解锁。
+- (void)cancelUnlockInViewController:(UIViewController * _Nonnull)viewController bookID:(NSString * _Nonnull)bookID chapterID:(NSString * _Nonnull)chapterID;
 /// 初始化时不传的参数沿用本地保存值。
-- (void)initializeWithAppKey:(NSString * _Nonnull)appKey oaid:(NSString * _Nullable)oaid account:(NSString * _Nullable)account;
+- (void)initializeWithAppKey:(NSString * _Nonnull)appKey account:(NSString * _Nullable)account;
 /// 切换账号；account 为空时回到设备身份。
-- (void)loginWithAppKey:(NSString * _Nonnull)appKey oaid:(NSString * _Nullable)oaid account:(NSString * _Nullable)account;
+- (void)loginWithAppKey:(NSString * _Nonnull)appKey account:(NSString * _Nullable)account;
 @end
 
 
@@ -345,13 +344,7 @@ SWIFT_CLASS_PROPERTY(@property (nonatomic, class, readonly, strong) NSBundle * _
 SWIFT_CLASS("_TtC10DZDramaSDK20DZDramaConfiguration")
 @interface DZDramaConfiguration : NSObject
 @property (nonatomic, copy) NSString * _Nonnull appKey;
-/// 不设置时读取宿主 Info.plist 的 DZOperaLicenseKey。
-@property (nonatomic, copy) NSString * _Nullable licenseKey;
 @property (nonatomic, copy) NSString * _Nullable account;
-@property (nonatomic, copy) NSString * _Nullable oaid;
-@property (nonatomic, copy) NSString * _Nonnull channel;
-/// 仅用于服务端支持的明文联调；正式环境保持 false。
-@property (nonatomic) BOOL plaintextLaunchDebugging;
 - (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
 @end
 
@@ -362,15 +355,6 @@ typedef SWIFT_ENUM(NSInteger, DZDramaPage, open) {
   DZDramaPageSearch = 2,
   DZDramaPageFavorites = 3,
 };
-
-
-/// 将自动曝光组件的页面日志和事件交给宿主已有回调。
-SWIFT_CLASS_NAMED("DZExposureEventBridge")
-@interface DZExposureEventBridge : NSObject
-+ (void)DZ_logInfo:(NSString * _Nonnull)message andOtherInfo:(NSDictionary<NSString *, id> * _Nonnull)info;
-+ (void)DZ_trackPageWithName:(NSString * _Nullable)pageName pageTitle:(NSString * _Nullable)pageTitle positionName:(NSString * _Nullable)positionName pageAddress:(NSString * _Nullable)pageAddress extMap:(NSDictionary<NSString *, id> * _Nullable)extMap;
-- (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
-@end
 
 
 

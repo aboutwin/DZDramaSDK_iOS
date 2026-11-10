@@ -29,47 +29,23 @@ import _SwiftConcurrencyShims
 }
 @objc @_inheritsConvenienceInitializers @objcMembers final public class DZDramaConfiguration : ObjectiveC.NSObject {
   @objc final public var appKey: Swift.String
-  @objc final public var licenseKey: Swift.String?
   @objc final public var account: Swift.String?
-  @objc final public var oaid: Swift.String?
-  @objc final public var channel: Swift.String
-  @objc final public var plaintextLaunchDebugging: Swift.Bool
   @objc override dynamic public init()
   @objc deinit
 }
 @_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @objc(DZDramaSDKManager) @objcMembers final public class DZDramaClient : ObjectiveC.NSObject {
   @objc public static let shared: DZDramaSDK.DZDramaClient
   @objc public static let sdkVersion: Swift.String
-  @objc public static var resourceBundle: Foundation.Bundle {
-    @objc get
-  }
-  @objc final public var userID: Swift.String? {
-    @objc get
-  }
-  @objc final public var isRegistered: Swift.Bool {
-    @objc get
-  }
-  @objc final public var logHandler: ((Swift.String, [Swift.String : Any]) -> Swift.Void)? {
-    @objc get
-    @objc set
-  }
-  @objc final public var eventHandler: ((Swift.String, [Swift.String : Any]) -> Swift.Void)? {
-    @objc get
-    @objc set
-  }
+  @objc final public var unlockHandler: ((UIKit.UIViewController, Swift.String, Swift.String) -> Swift.Void)?
+  @objc final public var bottomAdHandler: ((UIKit.UIViewController, UIKit.UIView, Swift.String) -> Swift.Void)?
   @objc(initializeWithConfiguration:completion:) final public func initialize(with configuration: DZDramaSDK.DZDramaConfiguration, completion: ((Foundation.NSError?) -> Swift.Void)?)
-  @objc(loginWithAccount:oaid:completion:) final public func login(account: Swift.String?, oaid: Swift.String?, completion: ((Foundation.NSError?) -> Swift.Void)?)
+  @objc(loginWithAccount:completion:) final public func login(account: Swift.String?, completion: ((Foundation.NSError?) -> Swift.Void)?)
   @objc(viewControllerForPage:) final public func viewController(for page: DZDramaSDK.DZDramaPage) -> UIKit.UIViewController
   @objc(navigationControllerWithRootViewController:) final public func navigationController(rootViewController: UIKit.UIViewController) -> UIKit.UINavigationController
-  @objc(detailViewControllerWithBookID:chapterIndex:playStartPosition:) final public func detailViewController(bookID: Swift.String, chapterIndex: Swift.Int, playStartPosition: Swift.Int64) -> UIKit.UIViewController
-  @objc final public func initialize(appKey: Swift.String, oaid: Swift.String? = nil, account: Swift.String? = nil)
-  @objc final public func login(appKey: Swift.String, oaid: Swift.String? = nil, account: Swift.String? = nil)
-  @objc deinit
-}
-@_inheritsConvenienceInitializers @objc(DZExposureEventBridge) final public class DZExposureEventBridge : ObjectiveC.NSObject {
-  @objc(DZ_logInfo:andOtherInfo:) public static func DZ_logInfo(_ message: Swift.String, andOtherInfo info: [Swift.String : Any])
-  @objc(DZ_trackPageWithName:pageTitle:positionName:pageAddress:extMap:) public static func DZ_trackPage(withName pageName: Swift.String?, pageTitle: Swift.String?, positionName: Swift.String?, pageAddress: Swift.String?, extMap: [Swift.String : Any]?)
-  @objc override dynamic public init()
+  @objc(unlockChapterInViewController:bookID:chapterID:adID:completion:) final public func unlockChapter(in viewController: UIKit.UIViewController, bookID: Swift.String, chapterID: Swift.String, adID: Swift.String, completion: ((Foundation.NSError?) -> Swift.Void)?)
+  @objc(cancelUnlockInViewController:bookID:chapterID:) final public func cancelUnlock(in viewController: UIKit.UIViewController, bookID: Swift.String, chapterID: Swift.String)
+  @objc final public func initialize(appKey: Swift.String, account: Swift.String? = nil)
+  @objc final public func login(appKey: Swift.String, account: Swift.String? = nil)
   @objc deinit
 }
 extension DZDramaSDK.DZDramaPage : Swift.Equatable {}

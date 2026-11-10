@@ -2,47 +2,39 @@
 
 iOS 短剧二进制 SDK，最低 iOS 15.0。以静态 XCFramework 分发，包含真机 arm64 和模拟器 x86_64。业务源码、内部 Swift 二进制模块和调试源码索引不在交付包中；公开 `.h` / `.swiftinterface` 是接入所需的接口声明。
 
-## 远程 CocoaPods 接入
+每个架构仅交付两个头文件：模块入口 `DZDramaSDK.h` 和供 OC 调用 Swift 接口的 `DZDramaSDK-Swift.h`。曝光、压缩和运行时分类等内部工具不对宿主公开。
 
-仓库：https://github.com/aboutwin/DZDramaSDK_iOS 。在宿主 Podfile 中添加：
+## 本地 CocoaPods 接入
+
+将 SDK 目录放在宿主工程旁。
+
+可先从 GitHub 获取本版本：
+
+```sh
+git clone --branch main https://github.com/aboutwin/DZDramaSDK_iOS.git DZDramaSDK_iOS
+```
+
+宿主 Podfile 配置：
 
 ```ruby
 source 'https://mirrors.tuna.tsinghua.edu.cn/git/CocoaPods/Specs.git'
 source 'https://github.com/aliyun-sls/Specs.git'
 platform :ios, '15.0'
 use_modular_headers!
+require_relative '../DZDramaSDK_iOS/CocoaPodsSupport'
 
 target 'YourApp' do
-  pod 'DZDramaSDK', :git => 'https://github.com/aboutwin/DZDramaSDK_iOS.git', :tag => '1.0.0'
+  pod 'DZDramaSDK', :path => '../DZDramaSDK_iOS'
 end
 post_install do |installer|
-  require File.join(installer.sandbox.pod_dir('DZDramaSDK'), 'CocoaPodsSupport.rb')
   DZDramaSDKPodSupport.post_install(installer)
 end
 post_integrate do |installer|
-  require File.join(installer.sandbox.pod_dir('DZDramaSDK'), 'CocoaPodsSupport.rb')
   DZDramaSDKPodSupport.post_integrate(installer)
 end
 ```
 
-执行 `pod install`，打开宿主 `.xcworkspace`。已有 post_install / post_integrate 时合并调用，不要重复定义 hook。辅助脚本保持 Xcode 脚本沙箱开启，处理播放器框架、资源 bundle 和 CocoaPods 1.15 的复制输出路径。`CocoaPodsSupport.rb` 会随 Pod 一起下载，首次安装无需提前复制脚本。
-
-这是 GitHub Git 源的二进制 Pod，未发布到 CocoaPods Trunk，因此需要保留 `:git` 和 `:tag`。
-
-## 克隆仓库和本地接入
-
-```bash
-git clone https://github.com/aboutwin/DZDramaSDK_iOS.git
-cd DZDramaSDK_iOS/OCExample
-pod install --no-repo-update
-open DZDramaOCExample.xcworkspace
-```
-
-示例默认使用仓库父目录的本地 Pod。其他宿主需要本地接入时，将上面的 Pod 声明替换为：
-
-```ruby
-pod 'DZDramaSDK', :path => '../DZDramaSDK_iOS'
-```
+执行 `pod install`，打开宿主 `.xcworkspace`。已有 post_install / post_integrate 时合并调用，不要重复定义 hook。辅助脚本保持 Xcode 脚本沙箱开启，处理播放器框架、资源 bundle 和 CocoaPods 1.15 的复制输出路径。
 
 SDK 内部使用 Swift，OC 宿主无需添加 Swift 源文件；所需 Swift 运行库设置由 Pod 配置提供。第三方依赖由 CocoaPods 单独安装，SDK 二进制不重复打入它们，版本以 podspec 为准。
 
@@ -55,11 +47,13 @@ SDK 内部使用 Swift，OC 宿主无需添加 Swift 源文件；所需 Swift �
 <string>AliVideoCert-hmjc.crt</string>
 <key>AlivcLicenseKey</key>
 <string>播放器授权 Key</string>
-<key>DZOperaLicenseKey</key>
-<string>合作方 128 字符十六进制签名密钥</string>
 ```
 
-公开示例不包含合作方签名密钥或播放器证书。请将自己的证书添加到 `OCExample` 或正式宿主的 App target，并填写授权信息；宿主 Bundle ID 和播放器授权应匹配。示例从 Info.plist 的 `DZDramaAppKey` 读取 appKey，未配置时跳过联网初始化。
+宿主 Bundle ID 和播放器授权应匹配。交付给新合作方时替换其 appKey 和播放器授权信息。Demo 由 SDK 提供方单独提供。
+
+`DZOperaLicenseKey` 内置在 SDK 资源包的 `DZOperaConfig.plist` 中，由 SDK 维护方配置。签名使用密钥原文的 UTF-8 字节，不做十六进制解码或固定长度限制。宿主无需配置签名密钥，SDK 不读取宿主 Info.plist 中的同名值，也不提供传入或覆盖密钥的公开接口。更换密钥需要重新构建 SDK 交付包。
+
+SDK 业务接口始终使用 JSON 请求体及 JSON `datas` 请求头，通过 `X-Timestamp`、`X-Nonce`、`X-Sign` 完成 HMAC-SHA256 鉴权，不提供关闭鉴权的开关或联调头。
 
 `DZOperaConfig.plist` 内置在 `DZDramaSDKResources.bundle`，由 SDK 维护环境、域名、ProductCode 和 APIVersion。宿主不需要提供该文件，SDK 不读取宿主的同名配置，也不提供修改域名、产品编号或接口版本的公开入口。调整这些值时，由 SDK 维护方修改内部配置并重新构建交付包。
 
@@ -70,8 +64,6 @@ SDK 内部使用 Swift，OC 宿主无需添加 Swift 源文件；所需 Swift �
 
 DZDramaConfiguration *configuration = [DZDramaConfiguration new];
 configuration.appKey = @"合作方 appKey";
-// 可选：configuration.licenseKey = @"签名密钥";
-// configuration.plaintextLaunchDebugging 仅用于明文联调，正式环境保持 NO。
 [DZDramaSDKManager.shared initializeWithConfiguration:configuration completion:^(NSError *error) {
     if (error) { NSLog(@"初始化失败：%@", error.localizedDescription); }
 }];
@@ -83,21 +75,76 @@ UIViewController *page = [DZDramaSDKManager.shared viewControllerForPage:DZDrama
 | 能力 | OC 接口 |
 | --- | --- |
 | 推荐、剧场、搜索、收藏 | `viewControllerForPage:`，枚举依次为 Recommendation、Theater、Search、Favorites |
-| 直接进入播放详情 | `detailViewControllerWithBookID:chapterIndex:playStartPosition:` |
+| 点击解锁时接入激励广告 | `unlockHandler`，参数为当前 UIViewController、bookID、chapterID |
+| 详情页底通广告容器 | `bottomAdHandler`，参数为当前 UIViewController、bottomView、bookID |
+| 奖励确认后解锁 | `unlockChapterInViewController:bookID:chapterID:adID:completion:` |
+| 广告失败、取消或无奖励 | `cancelUnlockInViewController:bookID:chapterID:` |
 | SDK 导航容器，支持 SDK 自定义导航栏和侧滑 | `navigationControllerWithRootViewController:` |
-| 切换账号，nil / 空 account 回到设备身份 | `loginWithAccount:oaid:completion:` |
-| 用户状态 | `userID`、`isRegistered` |
-| 日志、埋点 | `logHandler`、`eventHandler` |
-| 版本、资源 | `sdkVersion`、`resourceBundle` |
+| 切换账号，nil / 空 account 回到设备身份 | `loginWithAccount:completion:` |
+| SDK 版本 | `sdkVersion` |
 
-配置、账号切换、页面创建请在主线程调用。初始化回调在主线程返回，error 为 nil 表示成功。chapterIndex 从 1 开始，playStartPosition 为毫秒。创建页面返回 UIViewController，不要求宿主继承内部页面类型。
+配置、账号切换、页面创建请在主线程调用。初始化回调在主线程返回，error 为 nil 表示成功。创建页面返回 UIViewController，不要求宿主继承内部页面类型。短剧详情页由 SDK 内部导航进入，详情页类型和直接创建方法不对外提供。
 
 Swift 宿主使用 `import DZDramaSDK`，入口为 `DZDramaClient.shared`；该类在 OC 中的名字是 `DZDramaSDKManager`。
+
+## 激励广告解锁
+
+接入方在进入 SDK 页面前设置 `unlockHandler`。用户点击锁定章节时，SDK 在主线程回传 `(UIViewController *vc, NSString *bookID, NSString *chapterID)`，不再显示模拟广告弹窗。vc 是 SDK 当前详情页的通用 UIViewController 引用，仅用于展示广告和回传 SDK，无需转换为内部类型。
+
+接入方负责加载、展示广告，并在确认获得奖励且关闭广告后，用原始 vc、bookID、chapterID 和真实 adID 调用解锁。SDK 请求 1139，按服务端配置计算本次解锁章节数；仅在服务端确认目标章节已解锁后更新播放源、选集状态，并继续当前章节播放。completion 在主线程执行，error 为 nil 表示成功；错误包含服务端返回的 code/message。
+
+以下 `loadAndPresentRewardedAdFrom:reward:failure:` 由接入方对接所使用的广告 SDK 实现；reward 必须在奖励确认且广告已关闭后执行，failure 包含取消、无奖励和加载失败。
+
+```objc
+__weak typeof(self) weakSelf = self;
+DZDramaSDKManager.shared.unlockHandler = ^(UIViewController *vc, NSString *bookID, NSString *chapterID) {
+    __strong typeof(weakSelf) self = weakSelf;
+    if (!self) {
+        [DZDramaSDKManager.shared cancelUnlockInViewController:vc bookID:bookID chapterID:chapterID];
+        return;
+    }
+    [self loadAndPresentRewardedAdFrom:vc reward:^(NSString *adID) {
+        [DZDramaSDKManager.shared unlockChapterInViewController:vc bookID:bookID chapterID:chapterID adID:adID completion:^(NSError *error) {
+            if (error) { NSLog(@"解锁失败：%@", error.localizedDescription); }
+        }];
+    } failure:^{
+        [DZDramaSDKManager.shared cancelUnlockInViewController:vc bookID:bookID chapterID:chapterID];
+    }];
+};
+```
+
+Swift 的同一流程使用 `DZDramaClient.shared.unlockHandler = { vc, bookID, chapterID in ... }`，奖励回调中调用 `unlockChapter(in:bookID:chapterID:adID:completion:)`，失败或取消时调用 `cancelUnlock(in:bookID:chapterID:)`。
+
+同一待解锁章节在广告处理期间不会重复触发回调，加载失败或取消后务必调用取消接口。解锁提交中不重复请求，也不自动重试 1139。页面退出、剧集所属书籍变化或账号变化后，旧回调会返回失效错误；宿主应释放广告对象及保存的 vc，允许用户重新点击。未设置 unlockHandler 时章节保持锁定并提示广告暂不可用。
+
+## 详情页底通广告
+
+进入 SDK 页面前设置 `bottomAdHandler`。详情页首次显示且布局完成后，SDK 在主线程回传 `(UIViewController *vc, UIView *bottomView, NSString *bookID)`。bottomView 就是详情页底部实际使用的容器，三方把自己的广告视图加到该容器，不需要访问详情页类型。
+
+```objc
+DZDramaSDKManager.shared.bottomAdHandler = ^(UIViewController *vc, UIView *bottomView, NSString *bookID) {
+    // 将 UIView 替换为三方广告 SDK 的广告视图；展示页面参数使用 vc。
+    UIView *bannerView = [UIView new];
+    bannerView.translatesAutoresizingMaskIntoConstraints = NO;
+    [bottomView addSubview:bannerView];
+    UILayoutGuide *guide = bottomView.safeAreaLayoutGuide;
+    [NSLayoutConstraint activateConstraints:@[
+        [bannerView.leadingAnchor constraintEqualToAnchor:guide.leadingAnchor],
+        [bannerView.trailingAnchor constraintEqualToAnchor:guide.trailingAnchor],
+        [bannerView.topAnchor constraintEqualToAnchor:guide.topAnchor],
+        [bannerView.bottomAnchor constraintEqualToAnchor:guide.bottomAnchor]
+    ]];
+};
+```
+
+Swift 使用 `DZDramaClient.shared.bottomAdHandler = { vc, bottomView, bookID in ... }`。广告区高 49pt，容器额外包含底部安全区，按 safeAreaLayoutGuide 布局可避开 Home 指示条。SDK 负责容器位置、尺寸及视频区域布局，三方负责广告加载、刷新和广告对象释放，不应修改容器 frame 或约束。
+
+同一详情页、同一书籍只通知一次，从激励广告或其他页面返回时保留已添加的广告。同一详情页切换到下一部短剧时，SDK 移除旧容器子视图并以新 bookID 再次回调；异步加载广告时请先确认 bottomView 仍在窗口中，且当前广告视图尚未被切书逻辑移除，避免旧广告加载结果覆盖新广告。退出详情页后，容器随页面移除，三方不要通过全局回调强引用保存 vc 或 bottomView。
 
 ## 当前架构范围
 
 阿里播放器 `7.16.0-56407419` 只提供真机 arm64 和模拟器 x86_64。当前整套 SDK 因而不支持原生 arm64 模拟器；接入脚本仅在模拟器构建中排除 arm64，真机继续使用 arm64。Apple Silicon 电脑需要可运行 x86_64 的模拟器及 Rosetta。要支持原生 arm64 模拟器，需要先更换支持该架构的播放器依赖，再重新构建 SDK。
 
-本包的静态 SDK 不需要 Embed & Sign；播放器动态框架由 CocoaPods 嵌入。当前 1.0.0 二进制沿用已验证的 dev 测试环境，正式环境由 SDK 维护方重新构建版本后发布，宿主不能覆盖域名。
+本包的静态 SDK 不需要 Embed & Sign；播放器动态框架由 CocoaPods 嵌入。当前交付内容位于 GitHub main 分支，SDK 版本保持 1.0.0；下载或克隆 main 后按上面的本地路径配置接入。podspec 的 source 同样指向 main 分支。
 
 隐私声明放在 SDK 资源 bundle 内，第三方许可证位于 ThirdPartyNotices。SDK 使用设备/用户标识及使用事件进行功能服务和分析，宿主应结合实际业务配置其 App 隐私说明。
