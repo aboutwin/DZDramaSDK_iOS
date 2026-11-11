@@ -78,9 +78,9 @@ Swift 宿主使用 `import DZDramaSDK`，入口为 `DZDramaClient.shared`；该�
 
 ## 激励广告解锁
 
-接入方在进入 SDK 页面前设置 `unlockHandler`。用户点击锁定章节时，SDK 在主线程回传 `(UIViewController *vc, NSString *bookID, NSString *chapterID)`，不再显示模拟广告弹窗。vc 是 SDK 当前详情页的通用 UIViewController 引用，仅用于展示广告和回传 SDK，无需转换为内部类型。
+接入方在进入 SDK 页面前设置 `unlockHandler`。用户点击锁定章节时，SDK 在主线程回传 `(UIViewController *vc, NSString *bookID, NSString *chapterID)
 
-接入方负责加载、展示广告，并在确认获得奖励且关闭广告后，用原始 vc、bookID、chapterID 和真实 adID 调用解锁。SDK 请求 1139，按服务端配置计算本次解锁章节数；仅在服务端确认目标章节已解锁后更新播放源、选集状态，并继续当前章节播放。completion 在主线程执行，error 为 nil 表示成功；错误包含服务端返回的 code/message。
+接入方负责加载、展示广告，并在确认获得奖励且关闭广告后，用原始 vc、bookID、chapterID 和真实 adID 调用解锁。
 
 以下 `loadAndPresentRewardedAdFrom:reward:failure:` 由接入方对接所使用的广告 SDK 实现；reward 必须在奖励确认且广告已关闭后执行，failure 包含取消、无奖励和加载失败。
 
@@ -104,11 +104,11 @@ DZDramaSDKManager.shared.unlockHandler = ^(UIViewController *vc, NSString *bookI
 
 Swift 的同一流程使用 `DZDramaClient.shared.unlockHandler = { vc, bookID, chapterID in ... }`，奖励回调中调用 `unlockChapter(in:bookID:chapterID:adID:completion:)`，失败或取消时调用 `cancelUnlock(in:bookID:chapterID:)`。
 
-同一待解锁章节在广告处理期间不会重复触发回调，加载失败或取消后务必调用取消接口。解锁提交中不重复请求，也不自动重试 1139。页面退出、剧集所属书籍变化或账号变化后，旧回调会返回失效错误；宿主应释放广告对象及保存的 vc，允许用户重新点击。未设置 unlockHandler 时章节保持锁定并提示广告暂不可用。
+同一待解锁章节在广告处理期间不会重复触发回调，加载失败或取消后务必调用取消接口。
 
 ## 详情页底通广告
 
-进入 SDK 页面前设置 `bottomAdHandler`。详情页首次显示且布局完成后，SDK 在主线程回传 `(UIViewController *vc, UIView *bottomView, NSString *bookID)`。bottomView 就是详情页底部实际使用的容器，三方把自己的广告视图加到该容器，不需要访问详情页类型。
+进入 SDK 页面前设置 `bottomAdHandler`。详情页首次显示且布局完成后，SDK 在主线程回传 `(UIViewController *vc, UIView *bottomView, NSString *bookID)`。三方把自己的广告视图加到该容器，不需要访问详情页类型。
 
 ```objc
 DZDramaSDKManager.shared.bottomAdHandler = ^(UIViewController *vc, UIView *bottomView, NSString *bookID) {
@@ -126,13 +126,11 @@ DZDramaSDKManager.shared.bottomAdHandler = ^(UIViewController *vc, UIView *botto
 };
 ```
 
-Swift 使用 `DZDramaClient.shared.bottomAdHandler = { vc, bottomView, bookID in ... }`。广告区高 49pt，容器额外包含底部安全区，按 safeAreaLayoutGuide 布局可避开 Home 指示条。SDK 负责容器位置、尺寸及视频区域布局，三方负责广告加载、刷新和广告对象释放，不应修改容器 frame 或约束。
+Swift 使用 `DZDramaClient.shared.bottomAdHandler = { vc, bottomView, bookID in ... }`。
 
 同一详情页、同一书籍只通知一次，从激励广告或其他页面返回时保留已添加的广告。同一详情页切换到下一部短剧时，SDK 移除旧容器子视图并以新 bookID 再次回调；异步加载广告时请先确认 bottomView 仍在窗口中，且当前广告视图尚未被切书逻辑移除，避免旧广告加载结果覆盖新广告。退出详情页后，容器随页面移除，三方不要通过全局回调强引用保存 vc 或 bottomView。
 
 ## 当前架构范围
-
-阿里播放器 `7.16.0-56407419` 只提供真机 arm64 和模拟器 x86_64。当前整套 SDK 因而不支持原生 arm64 模拟器；接入脚本仅在模拟器构建中排除 arm64，真机继续使用 arm64。Apple Silicon 电脑需要可运行 x86_64 的模拟器及 Rosetta。要支持原生 arm64 模拟器，需要先更换支持该架构的播放器依赖，再重新构建 SDK。
 
 本包的静态 SDK 不需要 Embed & Sign；播放器动态框架由 CocoaPods 嵌入。Specs 索引从 GitHub main 分支读取，版本 1.0.0 的二进制始终从同名标签下载。
 
