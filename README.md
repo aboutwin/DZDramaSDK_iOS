@@ -2,7 +2,7 @@
 
 iOS 短剧二进制 SDK，最低 iOS 15.0。以静态 XCFramework 分发，包含真机 arm64 和模拟器 x86_64。业务源码、内部 Swift 二进制模块和调试源码索引不在交付包中；公开 `.h` / `.swiftinterface` 是接入所需的接口声明。
 
-每个架构仅交付两个头文件：模块入口 `DZDramaSDK.h` 和供 OC 调用 Swift 接口的 `DZDramaSDK-Swift.h`。曝光、压缩和运行时分类等内部工具不对宿主公开。
+每个架构仅交付两个头文件：模块入口 `DZDramaSDK.h` 和供 OC 调用 Swift 接口的 `DZDramaSDK-Swift.h`.
 
 ## 按版本号通过 CocoaPods 接入
 
@@ -28,13 +28,13 @@ end
 
 执行 `pod install --repo-update`，打开宿主 `.xcworkspace`。已有 post_install / post_integrate 时合并调用，不要重复定义 hook。辅助脚本从安装后的 Pod 目录加载，保持 Xcode 脚本沙箱开启，处理播放器框架、资源 bundle 和 CocoaPods 1.15 的复制输出路径。
 
-公开 Specs 索引由上述 GitHub 仓库维护，必须保留第一条 source；该 Pod 不依赖本地 `:path`。Pod 名称为 `DZDramaSDK_iOS`，Swift 模块和 OC framework 名称仍为 `DZDramaSDK`，原有 `import DZDramaSDK` 和 `#import <DZDramaSDK/DZDramaSDK-Swift.h>` 无需修改。
+公开 Specs 索引由上述 GitHub 仓库维护，必须保留第一条 source；Pod 名称为 `DZDramaSDK_iOS`
 
-SDK 内部使用 Swift，OC 宿主无需添加 Swift 源文件；所需 Swift 运行库设置由 Pod 配置提供。第三方依赖由 CocoaPods 单独安装，SDK 二进制不重复打入它们，版本以 podspec 为准。
+## 接入、宿主证书和环境
 
-## 宿主证书和环境
+SDK使用前需要申请，从而通过合作后台生成APPKey、证书文件、LicenseKey等。注意没有这些无法使用SDK
 
-**`AliVideoCert-hmjc.crt` 放在主工程 App target 的 Copy Bundle Resources 中。不要放进 XCFramework 或 DZDramaSDKResources.bundle。** 宿主 Info.plist 保留：
+**`AliVideoCert-hmjc.crt` 放在主工程 App target 的 Info.plist同级目录。** 宿主 Info.plist 需配置：
 
 ```xml
 <key>AlivcLicenseFile</key>
@@ -43,7 +43,7 @@ SDK 内部使用 Swift，OC 宿主无需添加 Swift 源文件；所需 Swift �
 <string>播放器授权 Key</string>
 ```
 
-宿主 Bundle ID 和播放器授权应匹配。交付给新合作方时替换其 appKey 和播放器授权信息。Demo 由 SDK 提供方单独提供。
+宿主 Bundle ID 和播放器授权应匹配。交付给新合作方时替换其 appKey 和播放器授权信息。
 
 
 ## Objective-C 使用
