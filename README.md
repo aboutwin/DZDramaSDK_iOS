@@ -34,6 +34,12 @@ end
 
 SDK使用前需要申请，从而通过合作后台生成APPKey、证书文件、LicenseKey等。注意没有这些无法使用SDK
 
+<img width="1049" height="548" alt="截屏2026-11-13 17 36 09" src="https://github.com/user-attachments/assets/4a7efe35-4f6f-4bce-9221-fa0b206cc853" />
+
+
+<img width="1409" height="645" alt="截屏2026-11-13 17 36 33" src="https://github.com/user-attachments/assets/d25a527e-0969-46bb-9694-880165408e0d" />
+
+
 **`AliVideoCert-hmjc.crt` 放在主工程 App target 的 Info.plist同级目录。** 宿主 Info.plist 需配置：
 
 ```xml
